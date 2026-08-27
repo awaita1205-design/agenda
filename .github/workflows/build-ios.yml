@@ -20,10 +20,13 @@ jobs:
         run: npm install
 
       - name: Add iOS Platform (Capacitor)
-        run: npx cap add ios
+        run: npx cap add ios || true
 
       - name: Sync Capacitor
         run: npx cap sync ios
+
+      - name: List directory contents (Debug)
+        run: ls -la ios/App
 
       - name: Build iOS project via Xcode
         run: |
