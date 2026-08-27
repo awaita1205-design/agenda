@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gastos - VentasMejenKu</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+        body { background-color: #f5f5f7; color: #1d1d1f; padding-top: 130px; padding-bottom: 40px; transition: filter 0.3s ease; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #86868b; }
+        
+        .no-scrollbar::-webkit-scrollbar { width: 0px; background: transparent; }
+        .no-scrollbar { scrollbar-width: none; }
+        
+        .fixed-header { position: fixed; top: 0; left: 0; width: 100%; height: 115px; background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0, 0, 0, 0.06); z-index: 1000; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.01); }
+        .header-left { width: 20%; display: flex; align-items: center; }
+        .header-center { width: 60%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center; }
+        .header-right { width: 20%; }
+        
+        .btn-back { text-decoration: none; color: #86868b; font-size: 16px; font-weight: 500; position: relative; padding-bottom: 4px; transition: color 0.25s ease; display: inline-flex; align-items: center; }
+        .btn-back::after { content: ''; position: absolute; width: 100%; transform: scaleX(0); height: 2px; bottom: 0; left: 0; background-color: #86868b; transform-origin: bottom right; transition: transform 0.25s ease-out; }
+        .btn-back:hover { color: #1d1d1f; }
+        .btn-back:hover::after { transform: scaleX(1); transform-origin: bottom left; }
+        
+        .fixed-header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.8px; background: linear-gradient(135deg, #1d1d1f 20%, #434345 60%, #86868b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header-date { font-size: 11px; font-weight: 400; color: #86868b; }
+        
+        .main-content { max-width: 740px; margin: 0 auto; padding: 0 14px; }
+        
+        .notification-banner { background: #e3fbe3; border: 1px solid #34c759; color: #1b5e20; padding: 12px 16px; border-radius: 14px; margin-bottom: 20px; font-size: 14px; font-weight: 500; text-align: center; box-shadow: 0 4px 12px rgba(52, 199, 89, 0.1); }
+
+        .apple-card { background: #ffffff; border-radius: 20px; padding: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03); margin-bottom: 20px; border: 1px solid rgba(0, 0, 0, 0.01); transition: transform 0.3s ease; }
+        
+        .table-scroll-container { max-height: 380px; overflow-y: auto; overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; border-radius: 8px; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px; }
+        th { color: #86868b; font-weight: 500; padding: 14px 8px; border-bottom: 1px solid #e8e8ed; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; background: #ffffff; position: sticky; top: 0; z-index: 10; }
+        td { padding: 12px 8px; border-bottom: 1px solid #f5f5f7; vertical-align: middle; }
+        
+        .table-input { width: 100%; border: 1px solid transparent; background: transparent; padding: 8px 6px; font-size: 14px; color: #1d1d1f; border-radius: 8px; outline: none; transition: all 0.2s ease; }
+        .table-input:focus { border-color: #d2d2d7; background: #f5f5f7; }
+        .text-right { text-align: right; }
+        .col-saldo { font-weight: 600; padding-right: 6px; font-size: 14px; color: #1d1d1f; }
+        
+        .toggle-type-btn { background: #f5f5f7; border: 1px solid #e8e8ed; border-radius: 9px; padding: 8px 12px; font-weight: 600; font-size: 15px; cursor: pointer; display: inline-block; width: 44px; text-align: center; user-select: none; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .toggle-type-btn.ingreso { background: #e3fbe3; border-color: #34c759; color: #34c759; }
+        .toggle-type-btn.egreso { background: #ffebeb; border-color: #ff3b30; color: #ff3b30; }
+        
+        .ghost-row { cursor: pointer; background-color: rgba(245, 245, 247, 0.5); }
+        .ghost-text { color: #0071e3; font-weight: 600; text-align: center; padding: 16px 0; }
+        
+        .btn-delete { background: #f5f5f7; color: #86868b; border: none; cursor: pointer; font-size: 16px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .btn-delete:hover { background: #ff3b30; color: white; }
+        
+        .cards-row-container { display: grid; grid-template-columns: 1fr 140px; gap: 16px; margin-bottom: 20px; align-items: stretch; }
+        @media(max-width: 600px) { .cards-row-container { grid-template-columns: 1fr; } }
+        
+        .card-info-solo { background: #ffffff; border-radius: 20px; padding: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.01); display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+        .card-circle-solo { background: #ffffff; border-radius: 20px; padding: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.01); display: flex; align-items: center; justify-content: center; }
+
+        .progress-container { position: relative; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; }
+        .progress-ring { transform: rotate(-90deg); width: 90px; height: 90px; }
+        .progress-ring-circle-bg { fill: none; stroke: #e8e8ed; stroke-width: 7; }
+        .progress-ring-circle { fill: none; stroke: #34c759; stroke-width: 7; stroke-dasharray: 251.2; stroke-dashoffset: 251.2; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+        .progress-text { position: absolute; font-size: 13px; font-weight: 700; color: #1d1d1f; text-align: center; }
+        
+        .info-block { display: flex; flex-direction: column; gap: 2px; }
+        .info-label { font-size: 11px; font-weight: 600; color: #86868b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .info-value { font-size: 18px; font-weight: 700; color: #1d1d1f; }
+        
+        .meta-input-wrapper { display: flex; align-items: center; gap: 4px; }
+        .meta-input { width: 100%; max-width: 150px; padding: 6px 10px; border: 1px solid #e8e8ed; background: #f5f5f7; border-radius: 8px; font-size: 16px; font-weight: 700; color: #1d1d1f; outline: none; transition: all 0.2s ease; }
+        .meta-input:focus { border-color: #0071e3; background: #ffffff; box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1); }
+
+        .stonks-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .stonks-title { font-size: 14px; font-weight: 600; color: #1d1d1f; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .zoom-controls { display: flex; gap: 6px; }
+        .zoom-btn { background: #f5f5f7; border: 1px solid #e8e8ed; border-radius: 8px; width: 32px; height: 32px; font-size: 16px; font-weight: 700; color: #1d1d1f; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .zoom-btn:hover { background: #e8e8ed; }
+
+        .stonks-outer-wrapper { position: relative; width: 100%; border-radius: 12px; background: #fafafa; border: 1px solid #f0f0f2; }
+        .stonks-scroll-wrapper { width: 100%; max-height: 300px; overflow-x: auto; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .stonks-chart-container { position: relative; }
+        svg.stonks-svg { overflow: visible; display: block; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-card { background: #ffffff; width: 90%; max-width: 320px; border-radius: 24px; padding: 24px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.15); transform: scale(0.95); transition: transform 0.25s ease; }
+        .modal-overlay.active .modal-card { transform: scale(1); }
+        .modal-title { font-size: 17px; font-weight: 700; color: #1d1d1f; margin-bottom: 8px; }
+        .modal-desc { font-size: 13px; color: #86868b; margin-bottom: 24px; line-height: 1.4; }
+        .modal-buttons { display: flex; gap: 10px; }
+        .modal-btn { flex: 1; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; transition: background 0.2s; }
+        .modal-btn-cancel { background: #f5f5f7; color: #1d1d1f; }
+        .modal-btn-cancel:hover { background: #e8e8ed; }
+        .modal-btn-confirm { background: #ff3b30; color: #ffffff; }
+        .modal-btn-confirm:hover { background: #d70015; }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="fixed-header" id="mainHeader">
+    <div class="header-left"><a href="index.html" class="btn-back">‹ Atrás</a></div>
+    <div class="header-center">
+        <h1>DINERO</h1>
+        <span class="header-date" id="headerDateText">--/--/----</span>
+    </div>
+    <div class="header-right"></div>
+</div>
+
+<div class="main-content">
+    <div id="notificationBanner" class="notification-banner" style="display: none;">
+        Cargando recomendación diaria...
+    </div>
+
+    <div class="apple-card">
+        <div class="table-scroll-container no-scrollbar" id="tableScrollContainer">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Categoría</th><th>Monto ($)</th><th>Saldo</th><th></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+                <tbody>
+                    <tr class="ghost-row" onclick="crearNuevaFila()">
+                        <td colspan="7" class="ghost-text">+ Añadir nuevo movimiento</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="cards-row-container">
+        <div class="card-info-solo">
+            <div class="info-block">
+                <span class="info-label">Dinero Actual</span>
+                <span id="txtDineroActual" class="info-value">$0.00</span>
+            </div>
+            <div class="info-block">
+                <span class="info-label">Meta</span>
+                <div class="meta-input-wrapper">
+                    <span style="font-weight: 700; font-size: 15px; color: #86868b;">$</span>
+                    <input type="number" id="inputMeta" class="meta-input" placeholder="0.00" onchange="guardarMeta(this.value)">
+                </div>
+            </div>
+        </div>
+        <div class="card-circle-solo">
+            <div class="progress-container">
+                <svg class="progress-ring" width="90" height="90">
+                    <circle class="progress-ring-circle-bg" cx="45" cy="45" r="39"></circle>
+                    <circle id="progressCircle" class="progress-ring-circle" cx="45" cy="45" r="39"></circle>
+                </svg>
+                <div id="progressText" class="progress-text">0.00%</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="apple-card">
+        <div class="stonks-card-header">
+            <span class="stonks-title">Evolución de Saldo (Stonks)</span>
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="cambiarZoom(-1)" title="Alejar zoom">-</button>
+                <button class="zoom-btn" onclick="cambiarZoom(1)" title="Acercar zoom">+</button>
+            </div>
+        </div>
+        <div class="stonks-outer-wrapper">
+            <div class="stonks-scroll-wrapper" id="stonksScrollWrapper">
+                <div class="stonks-chart-container" id="stonksContainer">
+                    <svg class="stonks-svg" id="stonksSvg"></svg>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-card">
+        <div class="modal-title">Confirmar eliminar</div>
+        <div class="modal-desc">¿Estás seguro de que deseas eliminar este movimiento? Esta acción no se puede deshacer.</div>
+        <div class="modal-buttons">
+            <button class="modal-btn modal-btn-cancel" onclick="cerrarModalEliminar()">Cancelar</button>
+            <button class="modal-btn modal-btn-confirm" id="btnConfirmDelete">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://lrabhfygohssvxfxamhb.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxyYWJoZnlnb2hzc3Z4ZnhhbWhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0NDExNjgsImV4cCI6MjEwMzAxNzE2OH0.VgcDOkE1liFbfBNhYydyYLTC6mWRHAq3Jg-op5S0vQM";
+    
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const opcionesFecha = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('headerDateText').innerText = new Date().toLocaleDateString('es-ES', opcionesFecha);
+
+    let movimientos = [];
+    let metaActual = 0;
+    let zoomNivel = parseFloat(localStorage.getItem('stonks_zoom')) || 1.0;
+    let idItemAEliminar = null; // ahora usamos la fecha completa como identificador
+    let primeraCargaGrafica = true;
+
+    // ========== CARGAR DATOS ==========
+    async function cargarMovimientos(hacerScroll = false) {
+        const { data, error } = await db
+            .from('Dinero')
+            .select('*')
+            .order('fecha', { ascending: true });
+
+        if (error) {
+            console.error('Error cargando Dinero:', error);
+            return;
+        }
+
+        movimientos = (data || []).map(row => ({
+            idDoc: row.fecha,                    // usamos la fecha completa como ID
+            fecha: row.fecha ? String(row.fecha).split('T')[0] : '',
+            fechaCompleta: row.fecha,            // guardamos el timestamp completo
+            tipo: row.tipo || 'ingreso',
+            descripcion: row.descripcion || '',
+            monto: row.monto || 0,
+            categoria: row.categoria || 'Productos'
+        }));
+
+        renderizarTablaCompleta(hacerScroll);
+    }
+
+    async function cargarMeta() {
+        const { data, error } = await db
+            .from('Metas')
+            .select('*')
+            .eq('tipo', 'dinero')
+            .maybeSingle();
+
+        if (error) {
+            console.error('Error cargando Metas:', error);
+            return;
+        }
+
+        if (data && data.metas !== undefined && data.metas !== null) {
+            metaActual = parseFloat(data.metas) || 0;
+            document.getElementById('inputMeta').value = metaActual;
+            calcularSaldosYMetas();
+        }
+    }
+
+    // Realtime
+    db.channel('realtime-dinero')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'Dinero' }, () => {
+            cargarMovimientos();
+        })
+        .subscribe();
+
+    db.channel('realtime-metas')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'Metas' }, () => {
+            cargarMeta();
+        })
+        .subscribe();
+
+    // Carga inicial
+    cargarMovimientos(true);
+    cargarMeta();
+
+    // ========== RENDER ==========
+    function renderizarTablaCompleta(hacerScrollAbajo = false) {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        movimientos.forEach((mov) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="date" class="table-input" value="${mov.fecha}" onchange="actualizar('fecha', '${mov.fechaCompleta}', this.value)"></td>
+                <td>
+                    <div class="toggle-type-btn ${mov.tipo}" 
+                         data-id="${mov.fechaCompleta}" 
+                         data-tipo="${mov.tipo}"
+                         onclick="toggleTipo(this)">
+                        ${mov.tipo === 'ingreso' ? '+' : '-'}
+                    </div>
+                </td>
+                <td><input type="text" class="table-input" value="${mov.descripcion || ''}" onchange="actualizar('descripcion', '${mov.fechaCompleta}', this.value)"></td>
+                <td>
+                    <select class="table-input" onchange="actualizar('categoria', '${mov.fechaCompleta}', this.value)">
+                        <option value="Productos" ${mov.categoria === 'Productos' ? 'selected' : ''}>Productos</option>
+                        <option value="Gasto personal" ${mov.categoria === 'Gasto personal' ? 'selected' : ''}>Gasto personal</option>
+                    </select>
+                </td>
+                <td><input type="number" class="table-input text-right" value="${mov.monto}" onchange="actualizar('monto', '${mov.fechaCompleta}', this.value)"></td>
+                <td class="text-right col-saldo" id="saldo-${mov.fechaCompleta}">$0.00</td>
+                <td>
+                    <button class="btn-delete" data-id="${mov.fechaCompleta}" onclick="abrirModalEliminar(this)">×</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        calcularSaldosYMetas();
+
+        if (hacerScrollAbajo) {
+            setTimeout(() => {
+                const container = document.getElementById('tableScrollContainer');
+                container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+            }, 120);
+        }
+    }
+
+    // ========== CÁLCULOS ==========
+    function calcularSaldosYMetas() {
+        let saldoAcumulado = 0;
+        let historialSaldos = [];
+        let fechasLabels = [];
+        let detallesMov = [];
+
+        movimientos.forEach(mov => {
+            let montoNum = Number(mov.monto || 0);
+            if (mov.tipo === 'ingreso') {
+                saldoAcumulado += montoNum;
+            } else {
+                saldoAcumulado -= montoNum;
+            }
+            if (saldoAcumulado < 0) saldoAcumulado = 0;
+
+            const el = document.getElementById(`saldo-${mov.fechaCompleta}`);
+            if (el) el.innerText = '$' + saldoAcumulado.toFixed(2);
+
+            historialSaldos.push(saldoAcumulado);
+            fechasLabels.push(mov.fecha || '');
+            detallesMov.push({ tipo: mov.tipo, categoria: mov.categoria });
+        });
+
+        document.getElementById('txtDineroActual').innerText = '$' + saldoAcumulado.toFixed(2);
+        actualizarProgresoYNotificacion(saldoAcumulado);
+        dibujarGraficaStonks(historialSaldos, fechasLabels, detallesMov);
+    }
+
+    function actualizarProgresoYNotificacion(totalActual) {
+        let porcentaje = 0;
+        if (metaActual > 0) {
+            porcentaje = (totalActual / metaActual) * 100;
+            if (porcentaje < 0) porcentaje = 0;
+        }
+
+        document.getElementById('progressText').innerText = porcentaje.toFixed(2) + '%';
+
+        const circunferencia = 245;
+        const offset = circunferencia - (Math.min(porcentaje, 100) / 100) * circunferencia;
+        document.getElementById('progressCircle').style.strokeDashoffset = offset;
+
+        const hoy = new Date();
+        const finAnio = new Date(hoy.getFullYear(), 11, 31);
+        const unDiaMs = 1000 * 60 * 60 * 24;
+        const diasRestantes = Math.ceil((finAnio - hoy) / unDiaMs);
+
+        const banner = document.getElementById('notificationBanner');
+        if (metaActual > 0 && diasRestantes > 0) {
+            let restanteMeta = Math.max(0, metaActual - totalActual);
+            let necesarioPorDia = restanteMeta / diasRestantes;
+
+            banner.style.display = 'block';
+            banner.innerHTML = `💡 Haz solo <b>$${necesarioPorDia.toFixed(2)}</b> al día (faltan ${diasRestantes} días para acabar el año) para lograr tu meta.`;
+        } else {
+            banner.style.display = 'none';
+        }
+    }
+
+    // ========== ZOOM + GRÁFICA ==========
+    function cambiarZoom(direccion) {
+        zoomNivel += direccion * 0.2;
+        if (zoomNivel < 0.5) zoomNivel = 0.5;
+        if (zoomNivel > 2.5) zoomNivel = 2.5;
+        localStorage.setItem('stonks_zoom', zoomNivel);
+        calcularSaldosYMetas();
+    }
+
+    function dibujarGraficaStonks(saldos, fechas, detalles) {
+        const svg = document.getElementById('stonksSvg');
+        svg.innerHTML = '';
+
+        if (saldos.length === 0) {
+            document.getElementById('stonksContainer').style.width = '100%';
+            return;
+        }
+
+        let maxVal = Math.max(metaActual, 5000, ...saldos);
+        const minVal = 0;
+        const rango = maxVal - minVal || 1;
+
+        const puntoAncho = Math.round(70 * zoomNivel);
+        const anchoCalculado = Math.max(750, saldos.length * puntoAncho + 100);
+        const alturaPorMil = Math.round(45 * zoomNivel);
+        const altoCalculado = Math.max(300, (maxVal / 1000) * alturaPorMil + 60);
+
+        const paddingTop = 20;
+        const paddingBottom = 40;
+        const alturaUtil = altoCalculado - paddingTop - paddingBottom;
+
+        document.getElementById('stonksContainer').style.width = anchoCalculado + 'px';
+        document.getElementById('stonksContainer').style.height = altoCalculado + 'px';
+        svg.setAttribute('width', anchoCalculado);
+        svg.setAttribute('height', altoCalculado);
+
+        for (let valGrid = 0; valGrid <= maxVal; valGrid += 1000) {
+            let yGrid = paddingTop + alturaUtil - ((valGrid - minVal) / rango) * alturaUtil;
+            
+            let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", "55");
+            line.setAttribute("y1", yGrid);
+            line.setAttribute("x2", anchoCalculado);
+            line.setAttribute("y2", yGrid);
+            line.setAttribute("stroke", "#f0f0f2");
+            line.setAttribute("stroke-width", "1");
+            svg.appendChild(line);
+
+            let labelBg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            labelBg.setAttribute("x", "5");
+            labelBg.setAttribute("y", yGrid - 9);
+            labelBg.setAttribute("width", "48");
+            labelBg.setAttribute("height", "18");
+            labelBg.setAttribute("rx", "4");
+            labelBg.setAttribute("fill", "#ffffff");
+            labelBg.setAttribute("stroke", "#e8e8ed");
+            labelBg.setAttribute("stroke-width", "1");
+            svg.appendChild(labelBg);
+
+            let label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            label.setAttribute("x", "29");
+            label.setAttribute("y", yGrid + 4);
+            label.setAttribute("text-anchor", "middle");
+            label.setAttribute("fill", "#86868b");
+            label.setAttribute("font-size", "10");
+            label.setAttribute("font-weight", "600");
+            label.textContent = "$" + valGrid;
+            svg.appendChild(label);
+        }
+
+        let puntosCoords = [];
+        saldos.forEach((val, index) => {
+            let x = 90 + (index * puntoAncho);
+            let valAjustado = Math.max(minVal, Math.min(val, maxVal));
+            let y = paddingTop + alturaUtil - ((valAjustado - minVal) / rango) * alturaUtil;
+            
+            let colorSegmento = "#34c759";
+            if (index > 0) {
+                let det = detalles[index];
+                if (det.tipo === 'egreso') {
+                    colorSegmento = (det.categoria === 'Productos') ? "#ff9500" : "#ff3b30";
+                }
+            }
+            puntosCoords.push({ x, y, val, fecha: fechas[index], color: colorSegmento });
+        });
+
+        for (let i = 0; i < puntosCoords.length - 1; i++) {
+            let p1 = puntosCoords[i];
+            let p2 = puntosCoords[i + 1];
+            let segmentLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            segmentLine.setAttribute("x1", p1.x);
+            segmentLine.setAttribute("y1", p1.y);
+            segmentLine.setAttribute("x2", p2.x);
+            segmentLine.setAttribute("y2", p2.y);
+            segmentLine.setAttribute("stroke", p2.color);
+            segmentLine.setAttribute("stroke-width", "3.5");
+            segmentLine.setAttribute("stroke-linecap", "round");
+            svg.appendChild(segmentLine);
+        }
+
+        puntosCoords.forEach((p, index) => {
+            let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            circle.setAttribute("cx", p.x);
+            circle.setAttribute("cy", p.y);
+            circle.setAttribute("r", "5");
+            circle.setAttribute("fill", "#ffffff");
+            circle.setAttribute("stroke", index === 0 ? "#34c759" : p.color);
+            circle.setAttribute("stroke-width", "2.5");
+            svg.appendChild(circle);
+
+            let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute("x", p.x);
+            text.setAttribute("y", altoCalculado - 12);
+            text.setAttribute("text-anchor", "middle");
+            text.setAttribute("fill", "#86868b");
+            text.setAttribute("font-size", "10");
+            text.textContent = p.fecha ? p.fecha.slice(5) : '';
+            svg.appendChild(text);
+        });
+
+        if (primeraCargaGrafica) {
+            setTimeout(() => {
+                const wrapper = document.getElementById('stonksScrollWrapper');
+                wrapper.scrollLeft = 0;
+                if (puntosCoords.length > 0) {
+                    let ultimoPuntoY = puntosCoords[puntosCoords.length - 1].y;
+                    wrapper.scrollTop = ultimoPuntoY - (wrapper.clientHeight / 2);
+                }
+                primeraCargaGrafica = false;
+            }, 150);
+        }
+    }
+
+    // ========== MODAL ELIMINAR ==========
+    function abrirModalEliminar(btn) {
+        idItemAEliminar = btn.getAttribute('data-id');
+        document.getElementById('deleteModal').classList.add('active');
+    }
+
+    function cerrarModalEliminar() {
+        idItemAEliminar = null;
+        document.getElementById('deleteModal').classList.remove('active');
+    }
+
+    document.getElementById('btnConfirmDelete').addEventListener('click', async () => {
+        if (!idItemAEliminar) return;
+
+        console.log('Eliminando por fecha:', idItemAEliminar);
+
+        const { error } = await db
+            .from('Dinero')
+            .delete()
+            .eq('fecha', idItemAEliminar);
+
+        if (error) {
+            console.error("Error al eliminar:", error);
+            alert('Error al eliminar: ' + error.message);
+        } else {
+            await cargarMovimientos();
+        }
+        cerrarModalEliminar();
+    });
+
+    // ========== GUARDAR META ==========
+    async function guardarMeta(valor) {
+        let nuevaMeta = parseFloat(valor) || 0;
+        metaActual = nuevaMeta;
+        document.getElementById('inputMeta').value = nuevaMeta;
+
+        const { data: existing } = await db
+            .from('Metas')
+            .select('*')
+            .eq('tipo', 'dinero')
+            .maybeSingle();
+
+        if (existing) {
+            const { error } = await db
+                .from('Metas')
+                .update({ metas: String(nuevaMeta) })
+                .eq('tipo', 'dinero');
+            if (error) console.error('Error actualizando meta:', error);
+        } else {
+            const { error } = await db
+                .from('Metas')
+                .insert({ tipo: 'dinero', metas: String(nuevaMeta) });
+            if (error) console.error('Error insertando meta:', error);
+        }
+
+        calcularSaldosYMetas();
+    }
+
+    // ========== ACTUALIZAR CAMPO ==========
+    async function actualizar(campo, fechaCompleta, valor) {
+        let val = campo === 'monto' ? (parseFloat(valor) || 0) : valor;
+
+        // Si cambia la fecha, convertimos a timestamp completo
+        if (campo === 'fecha') {
+            val = valor + 'T00:00:00.000Z'; // o el formato que uses
+        }
+
+        const { error } = await db
+            .from('Dinero')
+            .update({ [campo]: val })
+            .eq('fecha', fechaCompleta);
+
+        if (error) {
+            console.error("Error al actualizar:", error);
+            alert('Error al guardar: ' + error.message);
+        } else {
+            await cargarMovimientos();
+        }
+    }
+
+    // ========== TOGGLE TIPO ==========
+    async function toggleTipo(btn) {
+        const fechaCompleta = btn.getAttribute('data-id');
+        const actual = btn.getAttribute('data-tipo');
+        const nuevo = actual === 'ingreso' ? 'egreso' : 'ingreso';
+
+        console.log('Cambiando tipo de', fechaCompleta, 'de', actual, 'a', nuevo);
+
+        const { error } = await db
+            .from('Dinero')
+            .update({ tipo: nuevo })
+            .eq('fecha', fechaCompleta);
+
+        if (error) {
+            console.error("Error al cambiar tipo:", error);
+            alert('Error al cambiar tipo: ' + error.message);
+        } else {
+            await cargarMovimientos();
+        }
+    }
+
+    // ========== AÑADIR NUEVO MOVIMIENTO ==========
+    async function crearNuevaFila() {
+        const ahora = new Date().toISOString();
+
+        const { error } = await db
+            .from('Dinero')
+            .insert({
+                fecha: ahora,
+                tipo: 'ingreso',
+                descripcion: '',
+                monto: 0,
+                categoria: 'Productos'
+            });
+
+        if (error) {
+            console.error("Error al crear fila:", error);
+            alert('Error al guardar: ' + error.message);
+            return;
+        }
+
+        await cargarMovimientos(true);
+    }
+</script>
+</body>
+</html>

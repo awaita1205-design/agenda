@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rutina - VentasMejenKu</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+        body { background-color: #f5f5f7; color: #1d1d1f; padding-top: 130px; padding-bottom: 40px; }
+        
+        .fixed-header { position: fixed; top: 0; left: 0; width: 100%; height: 115px; background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0, 0, 0, 0.06); z-index: 1000; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.01); }
+        .header-left { width: 20%; display: flex; align-items: center; }
+        .header-center { width: 60%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center; }
+        .header-right { width: 20%; }
+        
+        .btn-back { text-decoration: none; color: #86868b; font-size: 16px; font-weight: 500; position: relative; padding-bottom: 4px; transition: color 0.25s ease; display: inline-flex; align-items: center; }
+        .btn-back::after { content: ''; position: absolute; width: 100%; transform: scaleX(0); height: 2px; bottom: 0; left: 0; background-color: #86868b; transform-origin: bottom right; transition: transform 0.25s ease-out; }
+        .btn-back:hover { color: #1d1d1f; }
+        .btn-back:hover::after { transform: scaleX(1); transform-origin: bottom left; }
+        
+        .fixed-header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.8px; background: linear-gradient(135deg, #1d1d1f 20%, #434345 60%, #86868b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header-date { font-size: 11px; font-weight: 400; color: #86868b; text-transform: capitalize; }
+        
+        .main-content { max-width: 600px; margin: 0 auto; padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
+
+        /* Notificación Flotante de Entrenamiento Iniciado (Cronómetro) */
+        .training-notification { position: fixed; top: 125px; left: 50%; transform: translateX(-50%); background: #1d1d1f; color: white; padding: 10px 20px; border-radius: 30px; font-size: 13px; font-weight: 500; z-index: 1050; display: none; align-items: center; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); backdrop-filter: blur(10px); }
+        .training-notification.show { display: flex; }
+        .timer-text { font-family: monospace; font-weight: 700; color: #34c759; font-size: 14px; }
+        .btn-stop-global { background: #ff3b30; color: white; border: none; padding: 4px 10px; border-radius: 15px; font-size: 11px; font-weight: 600; cursor: pointer; }
+
+        /* Fichas Delgadas de los Días */
+        .day-card { background: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02); border: 1px solid rgba(0, 0, 0, 0.04); overflow: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .day-header { padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; background: #ffffff; transition: background 0.2s; }
+        .day-header:hover { background: #fafafa; }
+        .day-title { font-size: 16px; font-weight: 600; color: #1d1d1f; letter-spacing: -0.3px; display: flex; align-items: center; gap: 10px; }
+        .day-badge { font-size: 11px; background: #f5f5f7; color: #86868b; padding: 2px 8px; border-radius: 6px; font-weight: 500; }
+        .day-arrow { font-size: 14px; color: #86868b; transition: transform 0.3s ease; }
+        .day-card.active .day-arrow { transform: rotate(90deg); color: #0071e3; }
+        
+        /* Menú Desplegable */
+        .day-body { max-height: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1); background: #fbfbfd; border-top: 0px solid #f0f0f2; }
+        .day-card.active .day-body { max-height: 2500px; border-top-width: 1px; padding: 20px; }
+        
+        /* Botón Iniciar Entrenamiento General del Día */
+        .day-action-bar { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+        .btn-iniciar-dia { background: #34c759; color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
+        .btn-iniciar-dia:hover { background: #30b753; }
+        .btn-iniciar-dia.terminar-modo { background: #ff3b30; }
+        .btn-iniciar-dia.terminar-modo:hover { background: #e03229; }
+
+        /* Lista de Ejercicios */
+        .exercises-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+        .exercise-item { background: #ffffff; border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #e8e8ed; box-shadow: 0 2px 8px rgba(0,0,0,0.01); gap: 10px; opacity: 0.6; pointer-events: none; transition: opacity 0.2s; }
+        .exercise-item.active-training { opacity: 1; pointer-events: auto; border-color: #34c759; box-shadow: 0 2px 12px rgba(52, 199, 89, 0.15); }
+        
+        .exercise-info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+        .exercise-name { font-size: 14px; font-weight: 600; color: #1d1d1f; }
+        .exercise-details { font-size: 12px; color: #86868b; }
+        
+        .exercise-actions { display: flex; align-items: center; gap: 8px; }
+
+        .empty-exercises { text-align: center; color: #86868b; font-size: 13px; padding: 10px 0; font-style: italic; }
+
+        /* Ficha de Asistencia */
+        .attendance-card { background: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02); border: 1px solid rgba(0, 0, 0, 0.04); padding: 20px; margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .attendance-title { font-size: 16px; font-weight: 600; color: #1d1d1f; letter-spacing: -0.3px; }
+        .attendance-container { position: relative; height: 120px; width: 100%; display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 1px solid #e8e8ed; border-left: 1px solid #e8e8ed; padding: 10px 10px 0 10px; }
+        .attendance-labels { display: flex; justify-content: space-between; font-size: 11px; color: #86868b; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+<!-- Notificación superior flotante de entrenamiento activo -->
+<div class="training-notification" id="trainingNotification">
+    <span id="notifText">Entrenamiento iniciado</span>
+    <span class="timer-text" id="globalTimer">00:00:00</span>
+    <button class="btn-stop-global" onclick="finalizarEntrenamientoGlobalManual()">Terminar</button>
+</div>
+
+<div class="fixed-header" id="mainHeader">
+    <div class="header-left"><a href="index.html" class="btn-back">‹ Atrás</a></div>
+    <div class="header-center">
+        <h1>RUTINA</h1>
+        <span class="header-date" id="headerDateText">--/--/----</span>
+    </div>
+    <div class="header-right"></div>
+</div>
+
+<div class="main-content">
+    <!-- Fichas fijas de Lunes a Viernes -->
+    <div class="day-card" id="card-Lunes">
+        <div class="day-header" onclick="toggleDia('Lunes')">
+            <div class="day-title"><span id="title-card-Lunes">Lunes</span><span class="day-badge" id="badge-Lunes">0 ej.</span></div>
+            <span class="day-arrow">›</span>
+        </div>
+        <div class="day-body" id="body-Lunes">
+            <div class="exercises-list" id="list-Lunes"><div class="empty-exercises">Cargando...</div></div>
+            <div class="day-action-bar" style="margin-top: 12px;">
+                <button class="btn-iniciar-dia" id="btn-dia-Lunes" onclick="toggleEntrenamientoDia('Lunes')" style="width: 100%;">▶ Iniciar entrenamiento</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="day-card" id="card-Martes">
+        <div class="day-header" onclick="toggleDia('Martes')">
+            <div class="day-title"><span id="title-card-Martes">Martes</span><span class="day-badge" id="badge-Martes">0 ej.</span></div>
+            <span class="day-arrow">›</span>
+        </div>
+        <div class="day-body" id="body-Martes">
+            <div class="exercises-list" id="list-Martes"><div class="empty-exercises">Cargando...</div></div>
+            <div class="day-action-bar" style="margin-top: 12px;">
+                <button class="btn-iniciar-dia" id="btn-dia-Martes" onclick="toggleEntrenamientoDia('Martes')" style="width: 100%;">▶ Iniciar entrenamiento</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="day-card" id="card-Miercoles">
+        <div class="day-header" onclick="toggleDia('Miercoles')">
+            <div class="day-title"><span id="title-card-Miercoles">Miércoles</span><span class="day-badge" id="badge-Miercoles">0 ej.</span></div>
+            <span class="day-arrow">›</span>
+        </div>
+        <div class="day-body" id="body-Miercoles">
+            <div class="exercises-list" id="list-Miercoles"><div class="empty-exercises">Cargando...</div></div>
+            <div class="day-action-bar" style="margin-top: 12px;">
+                <button class="btn-iniciar-dia" id="btn-dia-Miercoles" onclick="toggleEntrenamientoDia('Miercoles')" style="width: 100%;">▶ Iniciar entrenamiento</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="day-card" id="card-Jueves">
+        <div class="day-header" onclick="toggleDia('Jueves')">
+            <div class="day-title"><span id="title-card-Jueves">Jueves</span><span class="day-badge" id="badge-Jueves">0 ej.</span></div>
+            <span class="day-arrow">›</span>
+        </div>
+        <div class="day-body" id="body-Jueves">
+            <div class="exercises-list" id="list-Jueves"><div class="empty-exercises">Cargando...</div></div>
+            <div class="day-action-bar" style="margin-top: 12px;">
+                <button class="btn-iniciar-dia" id="btn-dia-Jueves" onclick="toggleEntrenamientoDia('Jueves')" style="width: 100%;">▶ Iniciar entrenamiento</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="day-card" id="card-Viernes">
+        <div class="day-header" onclick="toggleDia('Viernes')">
+            <div class="day-title"><span id="title-card-Viernes">Viernes</span><span class="day-badge" id="badge-Viernes">0 ej.</span></div>
+            <span class="day-arrow">›</span>
+        </div>
+        <div class="day-body" id="body-Viernes">
+            <div class="exercises-list" id="list-Viernes"><div class="empty-exercises">Cargando...</div></div>
+            <div class="day-action-bar" style="margin-top: 12px;">
+                <button class="btn-iniciar-dia" id="btn-dia-Viernes" onclick="toggleEntrenamientoDia('Viernes')" style="width: 100%;">▶ Iniciar entrenamiento</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ficha de Asistencia -->
+    <div class="attendance-card">
+        <div class="attendance-title">Historial de Asistencia</div>
+        <div class="attendance-container" id="attendanceChartContainer"></div>
+        <div class="attendance-labels" id="attendanceLabelsContainer"></div>
+    </div>
+</div>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+    // ====================== SUPABASE ======================
+    const SUPABASE_URL = "https://lrabhfygohssvxfxamhb.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxyYWJoZnlnb2hzc3Z4ZnhhbWhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0NDExNjgsImV4cCI6MjEwMzAxNzE2OH0.VgcDOkE1liFbfBNhYydyYLTC6mWRHAq3Jg-op5S0vQM";
+    
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Fecha larga en el header
+    const opcionesFecha = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('headerDateText').innerText = new Date().toLocaleDateString('es-ES', opcionesFecha);
+
+    // Detectar el día actual de la semana
+    const jsDayMap = { 1: 'Lunes', 2: 'Martes', 3: 'Miercoles', 4: 'Jueves', 5: 'Viernes' };
+    const todayJsNumber = new Date().getDay();
+    const diaActualStr = jsDayMap[todayJsNumber] || 'Lunes';
+
+    const dias = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes'];
+    
+    // Datos en memoria
+    let rutinasData = {}; // { Lunes: [ {id, actividades, series, repeticiones, ...}, ... ], ... }
+    let historialAsistencia = {}; // { 'YYYY-MM-DD': true }
+
+    // Variables de entrenamiento
+    let entrenamientoActivoDia = localStorage.getItem('entrenamientoActivoDia') || null;
+    let timerInterval = null;
+    let ejerciciosCompletados = {};
+
+    // ====================== UTILIDADES ======================
+    function escapeHtml(text) {
+        if (!text && text !== 0) return '';
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return text.toString().replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function toggleDia(diaId) {
+        const card = document.getElementById(`card-${diaId}`);
+        const isActive = card.classList.contains('active');
+        document.querySelectorAll('.day-card').forEach(c => c.classList.remove('active'));
+        if (!isActive) card.classList.add('active');
+    }
+
+    // ====================== CARGA DE DATOS ======================
+    async function cargarDatosGenerales() {
+        // 1. Caché local para mostrar rápido
+        try {
+            const cachedRutinas = localStorage.getItem('rutinasData_cache');
+            const cachedAsistencia = localStorage.getItem('historialAsistencia_cache');
+            if (cachedRutinas) rutinasData = JSON.parse(cachedRutinas);
+            if (cachedAsistencia) historialAsistencia = JSON.parse(cachedAsistencia);
+
+            dias.forEach(dia => actualizarVistaDia(dia));
+            renderizarAsistencia();
+
+            const cardHoy = document.getElementById(`card-${diaActualStr}`);
+            if (cardHoy) cardHoy.classList.add('active');
+        } catch (e) {
+            console.error("Error leyendo caché:", e);
+        }
+
+        // 2. Cargar ejercicios desde Actividades (solo tipo = 'Rutina')
+        try {
+            const { data, error } = await db
+                .from('Actividades')
+                .select('*')
+                .eq('tipo', 'Rutina');
+
+            if (error) throw error;
+
+            // Reiniciar estructura
+            rutinasData = {};
+            dias.forEach(d => rutinasData[d] = []);
+
+            if (data && data.length > 0) {
+                data.forEach(item => {
+                    // La columna "dia" indica a qué día pertenece (Lunes, Martes, etc.)
+                    const diaKey = (item.dia || '').toString().trim();
+                    // Normalizamos por si viene con acento o mayúsculas/minúsculas
+                    const diaNormalizado = dias.find(d => 
+                        d.toLowerCase() === diaKey.toLowerCase() || 
+                        d.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === 
+                        diaKey.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                    );
+
+                    if (diaNormalizado) {
+                        rutinasData[diaNormalizado].push({
+                            id: item.id,
+                            nombre: item.actividades || item.nombre || 'Sin nombre',
+                            series: item.series || '',
+                            repeticiones: item.repeticiones || '',
+                            tiempo: item.tiempo || null
+                        });
+                    }
+                });
+            }
+
+            localStorage.setItem('rutinasData_cache', JSON.stringify(rutinasData));
+        } catch (e) {
+            console.error("Error cargando Actividades:", e);
+        }
+
+        dias.forEach(dia => actualizarVistaDia(dia));
+
+        const cardHoy = document.getElementById(`card-${diaActualStr}`);
+        if (cardHoy && !document.querySelector('.day-card.active')) {
+            cardHoy.classList.add('active');
+        }
+
+        // 3. Cargar historial de asistencia (últimos registros de HistorialActividades con actividad = 'Rutina')
+        try {
+            const { data: histData, error: histError } = await db
+                .from('HistorialActividades')
+                .select('dia, mes, año, completado')
+                .eq('actividad', 'Rutina')
+                .eq('completado', true);
+
+            if (histError) throw histError;
+
+            historialAsistencia = {};
+            if (histData && histData.length > 0) {
+                histData.forEach(row => {
+                    const d = String(row.dia).padStart(2, '0');
+                    const m = String(row.mes).padStart(2, '0');
+                    const a = row.año;
+                    const key = `${a}-${m}-${d}`;
+                    historialAsistencia[key] = true;
+                });
+            }
+
+            localStorage.setItem('historialAsistencia_cache', JSON.stringify(historialAsistencia));
+        } catch (e) {
+            console.error("Error cargando HistorialActividades:", e);
+        }
+
+        renderizarAsistencia();
+    }
+
+    // ====================== VISTA DE DÍAS ======================
+    function actualizarVistaDia(diaId) {
+        const ejercicios = rutinasData[diaId] || [];
+        
+        const badgeEl = document.getElementById(`badge-${diaId}`);
+        if (badgeEl) badgeEl.innerText = `${ejercicios.length} ej.`;
+        
+        const listContainer = document.getElementById(`list-${diaId}`);
+        if (!listContainer) return;
+
+        if (ejercicios.length === 0) {
+            listContainer.innerHTML = '<div class="empty-exercises">No hay ejercicios registrados para este día.</div>';
+            return;
+        }
+
+        const estaEntrenandoEsteDia = (entrenamientoActivoDia === diaId);
+
+        listContainer.innerHTML = ejercicios.map((ex, idx) => {
+            const keyEx = `${diaId}-${idx}`;
+            const estaCompletado = ejerciciosCompletados[keyEx] === true;
+
+            let estiloFicha = 'background: #ffffff;';
+            if (estaEntrenandoEsteDia && estaCompletado) {
+                estiloFicha = 'background: #fdf8e2; border-color: #fce8b2;';
+            }
+
+            // series x repeticiones (ej: 3x12)
+            let detalleSeriesReps = '';
+            if (ex.series || ex.repeticiones) {
+                detalleSeriesReps = `${escapeHtml(ex.series || '?')}x${escapeHtml(ex.repeticiones || '?')}`;
+            }
+
+            return `
+                <div class="exercise-item ${estaEntrenandoEsteDia ? 'active-training' : ''}" id="ex-item-${diaId}-${idx}" style="${estiloFicha} transition: all 0.3s ease;">
+                    <div class="exercise-info">
+                        <span class="exercise-name" style="${estaCompletado ? 'text-decoration: line-through; color: #8e8e93;' : ''}">${escapeHtml(ex.nombre)}</span>
+                        ${detalleSeriesReps ? `<span class="exercise-details">${detalleSeriesReps}</span>` : ''}
+                    </div>
+                    <div class="exercise-actions">
+                        ${estaEntrenandoEsteDia ? `
+                            <button class="btn-toggle-crono-ex" id="btn-estado-${diaId}-${idx}" onclick="toggleEstadoEjercicio('${diaId}', ${idx})" 
+                                style="font-size: 12px; padding: 4px 10px; cursor: pointer; border-radius: 6px; border: 1px solid #d1d1d6; background: ${estaCompletado ? '#f5e8b7' : '#ffffff'};">
+                                ${estaCompletado ? 'Terminado' : 'Iniciar'}
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function toggleEstadoEjercicio(diaId, idx) {
+        const keyEx = `${diaId}-${idx}`;
+        ejerciciosCompletados[keyEx] = !ejerciciosCompletados[keyEx];
+        actualizarVistaDia(diaId);
+    }
+
+    // ====================== ENTRENAMIENTO / CRONÓMETRO ======================
+    function toggleEntrenamientoDia(diaId) {
+        if (entrenamientoActivoDia === diaId) {
+            finalizarEntrenamientoGlobalManual();
+        } else {
+            if (entrenamientoActivoDia !== null) {
+                finalizarEntrenamientoGlobalManual();
+            }
+            iniciarEntrenamientoGlobal(diaId);
+        }
+    }
+
+    function iniciarEntrenamientoGlobal(diaId) {
+        entrenamientoActivoDia = diaId;
+        ejerciciosCompletados = {};
+
+        const startTime = Date.now();
+        localStorage.setItem('entrenamientoActivoDia', diaId);
+        localStorage.setItem('startTimeCronometro', startTime);
+
+        const btn = document.getElementById(`btn-dia-${diaId}`);
+        if (btn) {
+            btn.innerText = "■ Terminar entrenamiento";
+            btn.classList.add('terminar-modo');
+        }
+
+        const notif = document.getElementById('trainingNotification');
+        if (notif) {
+            document.getElementById('notifText').innerText = `Entrenamiento ${diaId} iniciado`;
+            notif.classList.add('show');
+        }
+
+        iniciarIntervaloCronometro();
+        actualizarVistaDia(diaId);
+        document.getElementById(`card-${diaId}`).classList.add('active');
+    }
+
+    function restaurarCronometroPersistente() {
+        const diaId = entrenamientoActivoDia;
+        if (!diaId) return;
+
+        const btn = document.getElementById(`btn-dia-${diaId}`);
+        if (btn) {
+            btn.innerText = "■ Terminar entrenamiento";
+            btn.classList.add('terminar-modo');
+        }
+
+        const notif = document.getElementById('trainingNotification');
+        if (notif) {
+            document.getElementById('notifText').innerText = `Entrenamiento ${diaId} en curso`;
+            notif.classList.add('show');
+        }
+
+        iniciarIntervaloCronometro();
+        actualizarVistaDia(diaId);
+        const card = document.getElementById(`card-${diaId}`);
+        if (card) card.classList.add('active');
+    }
+
+    function iniciarIntervaloCronometro() {
+        if (timerInterval) clearInterval(timerInterval);
+
+        timerInterval = setInterval(() => {
+            const startTime = parseInt(localStorage.getItem('startTimeCronometro')) || Date.now();
+            const tiempoSegundos = Math.floor((Date.now() - startTime) / 1000);
+
+            const h = String(Math.floor(tiempoSegundos / 3600)).padStart(2, '0');
+            const m = String(Math.floor((tiempoSegundos % 3600) / 60)).padStart(2, '0');
+            const s = String(tiempoSegundos % 60).padStart(2, '0');
+            
+            const globalTimerEl = document.getElementById('globalTimer');
+            if (globalTimerEl) globalTimerEl.innerText = `${h}:${m}:${s}`;
+        }, 1000);
+    }
+
+    async function finalizarEntrenamientoGlobalManual() {
+        if (!entrenamientoActivoDia) return;
+        const diaId = entrenamientoActivoDia;
+
+        const ahora = new Date();
+        const anio = ahora.getFullYear();
+        const mes = ahora.getMonth() + 1;          // 1-12
+        const dia = ahora.getDate();               // 1-31
+        const fechaHoyIso = `${anio}-${String(mes).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+
+        // Marcar asistencia en memoria
+        historialAsistencia[fechaHoyIso] = true;
+
+        // Guardar en HistorialActividades
+        try {
+            const { error } = await db
+                .from('HistorialActividades')
+                .insert({
+                    actividad: 'Rutina',
+                    dia: dia,
+                    mes: mes,
+                    año: anio,
+                    completado: true
+                });
+
+            if (error) throw error;
+
+            localStorage.setItem('historialAsistencia_cache', JSON.stringify(historialAsistencia));
+            renderizarAsistencia();
+        } catch (e) {
+            console.error("Error al guardar asistencia en HistorialActividades:", e);
+            // Aun así actualizamos la vista local
+            renderizarAsistencia();
+        }
+
+        // Limpiar cronómetro
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = null;
+        ejerciciosCompletados = {};
+
+        localStorage.removeItem('entrenamientoActivoDia');
+        localStorage.removeItem('startTimeCronometro');
+
+        const notif = document.getElementById('trainingNotification');
+        if (notif) notif.classList.remove('show');
+
+        const btn = document.getElementById(`btn-dia-${diaId}`);
+        if (btn) {
+            btn.innerText = "▶ Iniciar entrenamiento";
+            btn.classList.remove('terminar-modo');
+        }
+
+        const globalTimerEl = document.getElementById('globalTimer');
+        if (globalTimerEl) globalTimerEl.innerText = "00:00:00";
+
+        entrenamientoActivoDia = null;
+        actualizarVistaDia(diaId);
+    }
+
+    // ====================== HISTORIAL DE ASISTENCIA (GRÁFICO) ======================
+    function renderizarAsistencia() {
+        const container = document.getElementById('attendanceChartContainer');
+        const labelsContainer = document.getElementById('attendanceLabelsContainer');
+        if (!container || !labelsContainer) return;
+        
+        const fechas = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            fechas.push(`${y}-${m}-${day}`);
+        }
+
+        container.innerHTML = '';
+        labelsContainer.innerHTML = '';
+
+        let puntosHtml = '';
+        fechas.forEach((fecha, index) => {
+            const entrene = historialAsistencia[fecha] === true;
+            const alturaPct = entrene ? '90%' : '10%';
+            const colorPunto = entrene ? '#34c759' : '#86868b';
+
+            puntosHtml += `
+                <div style="position: absolute; left: ${(index / (fechas.length - 1)) * 90 + 5}%; bottom: ${alturaPct}; width: 10px; height: 10px; background: ${colorPunto}; border-radius: 50%; transform: translate(-50%, 50%); z-index: 2;" title="${fecha}: ${entrene ? 'Sí' : 'No'}"></div>
+            `;
+
+            const partes = fecha.split('-');
+            labelsContainer.innerHTML += `<span>${partes[2]}/${partes[1]}</span>`;
+        });
+
+        container.innerHTML = puntosHtml;
+    }
+
+    // ====================== INICIO ======================
+    window.addEventListener('DOMContentLoaded', () => {
+        cargarDatosGenerales();
+        
+        if (entrenamientoActivoDia) {
+            restaurarCronometroPersistente();
+        }
+    });
+</script>
+</body>
+</html>

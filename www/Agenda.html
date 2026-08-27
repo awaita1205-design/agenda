@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Actividades - VentasMejenKu</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+        body { background-color: #f5f5f7; color: #1d1d1f; padding-top: 120px; padding-bottom: 180px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #86868b; }
+        .fixed-header { position: fixed; top: 0; left: 0; width: 100%; height: 105px; background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0, 0, 0, 0.06); z-index: 1000; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+        .header-left { width: 20%; display: flex; align-items: center; }
+        .header-center { width: 55%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .header-right { width: 25%; text-align: right; }
+        .btn-back { text-decoration: none; color: #86868b; font-size: 16px; font-weight: 500; position: relative; padding-bottom: 4px; transition: color 0.25s ease; }
+        .btn-back:hover { color: #1d1d1f; }
+        .fixed-header h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.6px; background: linear-gradient(135deg, #1d1d1f 20%, #434345 60%, #86868b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header-date { font-size: 12px; color: #86868b; font-weight: 500; margin-top: 2px; text-transform: capitalize; }
+        .days-badge { background: rgba(0, 113, 227, 0.08); color: #0071e3; padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; display: inline-block; border: 1px solid rgba(0,113,227,0.1); }
+        .main-content { max-width: 800px; margin: 0 auto; padding: 0 14px; }
+        .apple-card { background: #ffffff; border-radius: 20px; padding: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03); margin-bottom: 20px; border: 1px solid rgba(0, 0, 0, 0.01); transition: transform 0.3s ease; }
+        .card-title { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 16px; }
+        .table-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .month-select { background: #ffffff; border: 1px solid #d2d2d7; padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 500; outline: none; }
+        .table-wrapper { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; border-radius: 14px; border: 1px solid rgba(0,0,0,0.04); position: relative; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th, td { padding: 10px 6px; text-align: center; border-bottom: 1px solid #f5f5f7; }
+        th { background: #f5f5f7; color: #86868b; font-weight: 500; min-width: 36px; font-size: 11px; }
+        th.sticky-col, td.sticky-col { position: sticky; left: 0; background: #ffffff; z-index: 10; min-width: 160px; max-width: 160px; text-align: left; border-right: 1px solid #e8e8ed; padding-left: 10px; box-shadow: 3px 0 8px rgba(0,0,0,0.02); }
+        th.sticky-col { background: #f5f5f7; }
+        .cell-check { cursor: pointer; font-size: 14px; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border-radius: 7px; border: 1px solid #d2d2d7; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); margin: 0 auto; user-select: none; background: #ffffff; }
+        .cell-check.done { background: #34c759; border-color: #34c759; color: white; transform: scale(1.05); }
+        .cell-check.done::after { content: '✓'; font-weight: bold; font-size: 11px; }
+        .ghost-row { background-color: rgba(245, 245, 247, 0.5); }
+        .ghost-text { color: #0071e3; font-weight: 600; text-align: center; padding: 14px 0; font-size: 13px; cursor: pointer; }
+        .input-inline { width: 90%; padding: 5px 8px; font-size: 12px; border-radius: 6px; border: 1px solid #d2d2d7; outline: none; background: #ffffff; }
+        .btn-inline-save { background: #0071e3; color: white; border: none; width: 24px; height: 24px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-delete-row { background: transparent; color: #ff3b30; border: none; font-size: 16px; cursor: pointer; margin-left: 6px; opacity: 0.4; transition: opacity 0.2s; }
+        .sticky-col:hover .btn-delete-row { opacity: 1; }
+
+        #chartContainer { overflow-x: auto; white-space: nowrap; }
+        .chart-svg path { pointer-events: none; }
+        .chart-line { fill: none; stroke: #34c759; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0px 4px 8px rgba(52, 199, 89, 0.3)); }
+        .chart-point { fill: #34c759; stroke: #ffffff; stroke-width: 2; cursor: pointer; transition: transform 0.2s; }
+        .chart-point:hover { transform: scale(1.4); fill: #0071e3; }
+        .chart-days-labels { display: flex; justify-content: space-between; width: 100%; margin-top: 8px; padding: 0 4px; }
+        .chart-day-label { font-size: 9px; color: #86868b; font-weight: 600; text-align: center; flex: 1; }
+
+        .floating-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 10px 20px; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.04); z-index: 2000; display: flex; gap: 10px; }
+        .dock-btn { background: #f5f5f7; border: 1px solid #e8e8ed; padding: 8px 16px; border-radius: 14px; font-size: 13px; font-weight: 600; color: #1d1d1f; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .dock-btn:hover { background: #ffffff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.15); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 3000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-box { background: #ffffff; border-radius: 20px; padding: 24px; width: 92%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); max-height: 80vh; overflow-y: auto; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 11px; margin-top: 12px; }
+        .cal-header-day { font-weight: 600; color: #86868b; }
+        .cal-day-cell { padding: 8px 0; border-radius: 8px; background: #f5f5f7; font-weight: 500; cursor: pointer; }
+        .cal-day-cell.perfect { background: #e3fbe3; color: #34c759; font-weight: 600; }
+        .cal-day-cell.partial { background: #fff3cd; color: #ffc107; }
+        .tooltip-text { font-size: 11px; color: #515154; line-height: 1.4; margin-top: 14px; background: #f5f5f7; padding: 10px; border-radius: 10px; }
+
+        .weekly-table { width: 100%; margin-top: 12px; border-collapse: collapse; }
+        .weekly-table th { background: #f5f5f7; padding: 6px; font-size: 11px; color: #86868b; }
+        .weekly-table td { padding: 8px 4px; font-size: 13px; text-align: left; border-bottom: 1px solid #f5f5f7; }
+
+        th.is-today, td.is-today {
+            background-color: rgba(0, 113, 227, 0.1) !important;
+            color: #0071e3 !important;
+            font-weight: 800 !important;
+            border: 2px solid #0071e3 !important;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="fixed-header">
+    <div class="header-left">
+        <a href="index.html" class="btn-back">‹ Atrás</a>
+    </div>
+    <div class="header-center">
+        <h1>Actividades</h1>
+        <div class="header-date" id="currentDateText">--</div>
+    </div>
+    <div class="header-right">
+        <div class="days-badge" id="daysLeftBadge">Quedan -- días</div>
+    </div>
+</div>
+
+<div class="main-content">
+
+    <!-- YA NO HAY Configuración del día -->
+
+    <div class="apple-card">
+        <div class="table-controls">
+            <div style="font-weight:600; font-size:15px;">Matriz Mensual</div>
+            <select id="monthSelector" class="month-select" onchange="window.cambiarMes()"></select>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr id="headerDaysRow">
+                        <th class="sticky-col">Actividad / Tiempo</th>
+                    </tr>
+                </thead>
+                <tbody id="activitiesTableBody"></tbody>
+                <tbody id="ghostTableBody">
+                    <tr class="ghost-row" id="rowGhostText" onclick="window.mostrarInputsFantasma()">
+                        <td colspan="32" class="ghost-text">+ Añadir nueva actividad</td>
+                    </tr>
+                    <tr class="ghost-row" id="rowGhostInputs" style="display: none;">
+                        <td class="sticky-col" style="border-right: none;">
+                            <div style="display: flex; gap: 4px; align-items: center; width: 100%;">
+                                <input type="text" id="inputGhostName" class="input-inline" placeholder="Actividad..." style="width:65%;">
+                                <input type="number" id="inputGhostTime" class="input-inline" placeholder="Min" style="width:30%;" min="1">
+                            </div>
+                        </td>
+                        <td colspan="31" style="text-align: left; padding-left: 12px;">
+                            <button class="btn-inline-save" onclick="window.guardarActividadFantasma()">✓</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="apple-card">
+        <div class="card-title">Rendimiento del Mes (%)</div>
+        <div class="chart-container" id="chartContainer"></div>
+    </div>
+
+</div>
+
+<div class="floating-dock">
+    <button class="dock-btn" onclick="window.abrirCalendario()">📅 Calendario Anual</button>
+    <button class="dock-btn" onclick="window.abrirSemanales()">🗓️ Actividades Semanales</button>
+</div>
+
+<div class="modal-overlay" id="weeklyModal" onclick="window.cerrarModalesAfuera(event)">
+    <div class="modal-box">
+        <h3>Actividades Semanales</h3>
+        <p style="font-size:11px; color:#86868b; margin-bottom:14px;">Lista única de tareas recurrentes para la semana:</p>
+        
+        <div style="display: flex; gap: 6px; margin-bottom: 14px;">
+            <input type="text" id="inputWeeklyNew" class="apple-input" placeholder="Nueva actividad semanal..." style="width: 80%; font-size: 13px; padding: 6px 10px;">
+            <button class="btn-inline-save" onclick="window.guardarActividadSemanalNueva()" style="width: 20%; height: auto;">+</button>
+        </div>
+
+        <table class="weekly-table">
+            <thead>
+                <tr>
+                    <th>Actividad</th>
+                    <th style="width:50px; text-align:center;">Hecho</th>
+                </tr>
+            </thead>
+            <tbody id="weeklyTasksTableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal-overlay" id="calModal" onclick="window.cerrarModalesAfuera(event)">
+    <div class="modal-box">
+        <h3 id="calModalTitle">Calendario Anual</h3>
+        <div class="cal-grid">
+            <div class="cal-header-day">D</div>
+            <div class="cal-header-day">L</div>
+            <div class="cal-header-day">M</div>
+            <div class="cal-header-day">M</div>
+            <div class="cal-header-day">J</div>
+            <div class="cal-header-day">V</div>
+            <div class="cal-header-day">S</div>
+        </div>
+        <div class="cal-grid" id="calGridDays"></div>
+        <div class="tooltip-text" id="calTooltip">Toca un día para ver detalles.</div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = "https://lrabhfygohssvxfxamhb.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxyYWJoZnlnb2hzc3Z4ZnhhbWhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0NDExNjgsImV4cCI6MjEwMzAxNzE2OH0.VgcDOkE1liFbfBNhYydyYLTC6mWRHAq3Jg-op5S0vQM";
+    
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const mesesNombre = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    
+    let añoActual = new Date().getFullYear();
+    let mesActualIndex = new Date().getMonth();
+    let actividadesGlobales = [];   // [{actividades: "Nombre", tiempo: 30}, ...]
+    window.historialDias = {};     // se guarda en localStorage (porque no hay tabla para historial)
+    window.historialSemanas = JSON.parse(localStorage.getItem('historial_semanas') || '{}');
+
+    // ========== CARGAR ACTIVIDADES DESDE SUPABASE ==========
+    async function cargarActividades() {
+        const { data, error } = await db
+            .from('Actividades')
+            .select('*')
+            .order('actividades', { ascending: true });
+
+        if (error) {
+            console.error('Error cargando Actividades:', error);
+            return;
+        }
+
+        actividadesGlobales = data || [];
+        renderizarMatrizActividades();
+        generarGrafica();
+    }
+
+    // Realtime de la lista de actividades
+    db.channel('actividades-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'Actividades' }, () => {
+            cargarActividades();
+        })
+        .subscribe();
+
+    // ========== INICIO ==========
+    window.addEventListener('DOMContentLoaded', () => {
+        establecerFechaHeader();
+        generarSelectorMeses();
+        construirEncabezadosTabla();
+        cargarActividades();
+        cargarHistorial();
+    });
+
+
+
+    function guardarHistorialLocal() {
+        const key = `historial_${añoActual}_${mesActualIndex}`;
+        localStorage.setItem(key, JSON.stringify(window.historialDias));
+    }
+
+    function establecerFechaHeader() {
+        const hoy = new Date();
+        const finAño = new Date(hoy.getFullYear(), 11, 31);
+        const diasRestantes = Math.ceil((finAño - hoy) / (1000 * 60 * 60 * 24));
+        
+        const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        document.getElementById('currentDateText').innerText = hoy.toLocaleDateString('es-ES', opciones);
+        document.getElementById('daysLeftBadge').innerText = `Quedan ${diasRestantes} días`;
+    }
+
+    function generarSelectorMeses() {
+        const selector = document.getElementById('monthSelector');
+        selector.innerHTML = '';
+        mesesNombre.forEach((name, idx) => {
+            let opt = document.createElement('option');
+            opt.value = idx;
+            opt.innerText = name;
+            if (idx === mesActualIndex) opt.selected = true;
+            selector.appendChild(opt);
+        });
+    }
+
+    function obtenerDiasDelMes(mesIdx) {
+        return new Date(añoActual, mesIdx + 1, 0).getDate();
+    }
+
+    function construirEncabezadosTabla() {
+        const headerRow = document.getElementById('headerDaysRow');
+        const hoy = new Date().getDate();
+        
+        while (headerRow.children.length > 1) {
+            headerRow.removeChild(headerRow.lastChild);
+        }
+        
+        const totalDias = obtenerDiasDelMes(mesActualIndex);
+        
+        for (let d = 1; d <= totalDias; d++) {
+            let th = document.createElement('th');
+            th.innerText = d;
+            
+            if (d === hoy && mesActualIndex === new Date().getMonth() && añoActual === new Date().getFullYear()) {
+                th.classList.add('is-today');
+                setTimeout(() => {
+                    th.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }, 400);
+            }
+            headerRow.appendChild(th);
+        }
+    }
+
+    // ========== RENDER MATRIZ ==========
+    function renderizarMatrizActividades() {
+        const tbody = document.getElementById('activitiesTableBody');
+        tbody.innerHTML = '';
+        const totalDias = obtenerDiasDelMes(mesActualIndex);
+        
+        actividadesGlobales.forEach((act, index) => {
+            const nombreAct = act.actividades || "Sin nombre";
+            const minutos = Array.isArray(act.tiempo) ? (act.tiempo[0] || 0) : (parseInt(act.tiempo) || 0);
+            
+            // Mostrar tiempo bonito
+            let tiempoDisplay = '';
+            if (minutos >= 60) {
+                const h = Math.floor(minutos / 60);
+                const m = minutos % 60;
+                tiempoDisplay = m > 0 ? `${h}h ${m}m` : `${h}h`;
+            } else {
+                tiempoDisplay = `${minutos}m`;
+            }
+
+            const activityKey = nombreAct.replace(/\s+/g, '_').toLowerCase();
+
+            const tr = document.createElement('tr');
+            
+            let tdFijo = document.createElement('td');
+            tdFijo.className = 'sticky-col';
+            tdFijo.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div>
+                        <strong>${nombreAct}</strong>
+                        <div style="font-size:10px; color:#86868b;">${tiempoDisplay}</div>
+                    </div>
+                    <button class="btn-delete-row" onclick="window.eliminarActividad('${nombreAct.replace(/'/g, "\\'")}')">×</button>
+                </div>`;
+            tr.appendChild(tdFijo);
+
+            for (let d = 1; d <= totalDias; d++) {
+                let td = document.createElement('td');
+                let estado = false;
+                
+                if (window.historialDias?.[`Dia_${d}`]?.[activityKey]) {
+                    estado = window.historialDias[`Dia_${d}`][activityKey].completado || false;
+                }
+                
+                let check = document.createElement('div');
+                check.className = `cell-check ${estado ? 'done' : ''}`;
+                check.onclick = () => window.toggleCumplimientoDia(nombreAct, d);
+                
+                td.appendChild(check); 
+                tr.appendChild(td);
+            }
+            
+            tbody.appendChild(tr);
+        });
+    }
+
+    // ========== GRÁFICA ==========
+    function generarGrafica() {
+        const container = document.getElementById('chartContainer');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const totalDias = obtenerDiasDelMes(mesActualIndex);
+        const anchoPorDia = 35;
+        const anchoTotal = totalDias * anchoPorDia;
+        const altoMaximo = 130;
+
+        const labelsContainer = document.createElement('div');
+        labelsContainer.className = 'chart-days-labels';
+        labelsContainer.style.width = `${anchoTotal}px`;
+
+        const totalActividades = actividadesGlobales.length;
+        let puntos = [];
+
+        for (let d = 1; d <= totalDias; d++) {
+            const mapaDia = window.historialDias?.[`Dia_${d}`] || {};
+            let hechas = 0;
+
+            Object.keys(mapaDia).forEach(k => { 
+                if (mapaDia[k].completado === true) hechas++; 
+            });
+
+            let pct = totalActividades > 0 ? Math.round((hechas / totalActividades) * 100) : 0;
+            puntos.push(pct);
+
+            let lbl = document.createElement('span');
+            lbl.className = 'chart-day-label'; 
+            lbl.innerText = d;
+            labelsContainer.appendChild(lbl);
+        }
+
+        const svgNamespace = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNamespace, "svg");
+        
+        svg.setAttribute("viewBox", `0 0 ${anchoTotal} ${altoMaximo + 20}`);
+        svg.setAttribute("class", "chart-svg");
+        svg.style.width = `${anchoTotal}px`; 
+        svg.style.height = "150px"; 
+        svg.style.overflow = "visible";
+
+        puntos.forEach((pct, index) => {
+            const x = index * anchoPorDia + (anchoPorDia / 2);
+            const y = altoMaximo - (pct / 100) * altoMaximo + 5;
+
+            const puntoCirculo = document.createElementNS(svgNamespace, "circle");
+            puntoCirculo.setAttribute("cx", x);
+            puntoCirculo.setAttribute("cy", y);
+            puntoCirculo.setAttribute("r", "5");
+            puntoCirculo.setAttribute("class", "chart-point");
+            
+            const tituloTooltip = document.createElementNS(svgNamespace, "title");
+            tituloTooltip.textContent = `Día ${index + 1}: ${pct}%`;
+            puntoCirculo.appendChild(tituloTooltip);
+            svg.appendChild(puntoCirculo);
+        });
+
+        if (puntos.length > 0) {
+            const path = document.createElementNS(svgNamespace, "path");
+            let dAttribute = "";
+            
+            puntos.forEach((pct, index) => {
+                const x = index * anchoPorDia + (anchoPorDia / 2);
+                const y = altoMaximo - (pct / 100) * altoMaximo + 5;
+                dAttribute += (index === 0 ? "M " : "L ") + `${x} ${y} `;
+            });
+            
+            path.setAttribute("d", dAttribute);
+            path.setAttribute("fill", "none");
+            path.setAttribute("class", "chart-line");
+            svg.insertBefore(path, svg.firstChild);
+        }
+
+        container.appendChild(svg);
+        container.appendChild(labelsContainer);
+    }
+
+    // ========== CAMBIAR MES ==========
+   window.cambiarMes = function() {
+    mesActualIndex = parseInt(document.getElementById('monthSelector').value);
+    construirEncabezadosTabla();
+    cargarHistorial();          // ← aquí
+    renderizarMatrizActividades();
+    generarGrafica();
+};
+
+    // ========== AÑADIR ACTIVIDAD ==========
+    window.mostrarInputsFantasma = function() {
+        document.getElementById('rowGhostText').style.display = 'none';
+        document.getElementById('rowGhostInputs').style.display = 'table-row';
+        document.getElementById('inputGhostName').focus();
+    };
+
+    window.guardarActividadFantasma = async function() {
+        const nameInput = document.getElementById('inputGhostName');
+        const timeInput = document.getElementById('inputGhostTime');
+        const nombre = nameInput.value.trim();
+        let minutos = parseInt(timeInput.value);
+        
+        if (isNaN(minutos) || minutos < 1) minutos = 30;
+        if (!nombre) {
+            alert("Escribe una actividad.");
+            return;
+        }
+
+        // Guardar en Supabase (tiempo en minutos)
+        const { error } = await db
+            .from('Actividades')
+            .insert({
+                actividades: nombre,
+                tiempo: minutos
+            });
+
+        if (error) {
+            console.error(error);
+            alert('Error al guardar: ' + error.message);
+            return;
+        }
+
+        nameInput.value = ''; 
+        timeInput.value = '';
+        document.getElementById('rowGhostInputs').style.display = 'none';
+        document.getElementById('rowGhostText').style.display = 'table-row';
+
+        // Realtime se encargará de refrescar, pero forzamos por si acaso
+        await cargarActividades();
+    };
+
+    // ========== ELIMINAR ACTIVIDAD ==========
+    window.eliminarActividad = async function(nombre) {
+        
+
+        const { error } = await db
+            .from('Actividades')
+            .delete()
+            .eq('actividades', nombre);
+
+        if (error) {
+            console.error(error);
+            alert('Error al eliminar: ' + error.message);
+            return;
+        }
+
+        await cargarActividades();
+    };
+
+    // ========== TOGGLE DÍA ==========
+   // ========== CARGAR HISTORIAL (CORREGIDO) ==========
+async function cargarHistorial() {
+    // mes en la tabla es 1-12, no 0-11
+    const mesTabla = mesActualIndex + 1;
+
+    const { data, error } = await db
+        .from('HistorialActividades')
+        .select('*')
+        .eq('mes', mesTabla)
+        .eq('año', añoActual);
+
+    if (error) {
+        console.error('Error cargando historial:', error);
+        window.historialDias = {};
+        return;
+    }
+
+    window.historialDias = {};
+    (data || []).forEach(row => {
+        const diaKey = `Dia_${row.dia}`;
+        const activityKey = (row.actividad || '').replace(/\s+/g, '_').toLowerCase();
+
+        if (!window.historialDias[diaKey]) {
+            window.historialDias[diaKey] = {};
+        }
+
+        window.historialDias[diaKey][activityKey] = {
+            nombre: row.actividad,
+            completado: row.completado === true
+        };
+    });
+
+    renderizarMatrizActividades();
+    generarGrafica();
+}
+
+// ========== TOGGLE DÍA (CORREGIDO - sin usar id) ==========
+window.toggleCumplimientoDia = async function(nombreAct, dia) {
+    const activityKey = nombreAct.replace(/\s+/g, '_').toLowerCase();
+    const diaKey = `Dia_${dia}`;
+    const mesTabla = mesActualIndex + 1; // 1-12
+
+    // Estado actual
+    const actual = window.historialDias?.[diaKey]?.[activityKey]?.completado || false;
+    const nuevoEstado = !actual;
+
+    // Actualización optimista (se ve al instante)
+    if (!window.historialDias[diaKey]) window.historialDias[diaKey] = {};
+    window.historialDias[diaKey][activityKey] = {
+        nombre: nombreAct,
+        completado: nuevoEstado
+    };
+    renderizarMatrizActividades();
+    generarGrafica();
+
+    try {
+        // 1. Intentamos actualizar cualquier fila que coincida (sin usar id)
+        const { data: updated, error: updateError } = await db
+            .from('HistorialActividades')
+            .update({ completado: nuevoEstado })
+            .eq('actividad', nombreAct)
+            .eq('dia', dia)
+            .eq('mes', mesTabla)
+            .eq('año', añoActual)
+            .select();   // para saber si actualizó algo
+
+        if (updateError) throw updateError;
+
+        // 2. Si no existía ninguna fila, insertamos
+        if (!updated || updated.length === 0) {
+            const { error: insertError } = await db
+                .from('HistorialActividades')
+                .insert({
+                    actividad: nombreAct,
+                    dia: dia,
+                    mes: mesTabla,
+                    año: añoActual,
+                    completado: nuevoEstado
+                });
+
+            if (insertError) throw insertError;
+        }
+    } catch (err) {
+        console.error('Error guardando en HistorialActividades:', err);
+        // Revertir el cambio local si falló
+        window.historialDias[diaKey][activityKey].completado = actual;
+        renderizarMatrizActividades();
+        generarGrafica();
+        alert('No se pudo guardar el cambio. Revisa la consola.');
+    }
+};
+
+    // ========== SEMANALES (localStorage) ==========
+    window.abrirSemanales = function() {
+        document.getElementById('weeklyModal').classList.add('active');
+        renderizarTareasSemanales();
+    };
+
+    function renderizarTareasSemanales() {
+        const tbody = document.getElementById('weeklyTasksTableBody');
+        tbody.innerHTML = '';
+
+        Object.keys(window.historialSemanas).forEach(key => {
+            const act = window.historialSemanas[key];
+            const estado = act.completado || false;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <strong>${act.nombre}</strong>
+                    <button class="btn-delete-row" onclick="window.eliminarActividadSemanal('${key}')" style="opacity:0.6; padding:0 4px;">×</button>
+                </td>
+                <td style="text-align:center;">
+                    <div class="cell-check ${estado ? 'done' : ''}" onclick="window.toggleCumplimientoSemana('${key}')"></div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    window.guardarActividadSemanalNueva = function() {
+        const input = document.getElementById('inputWeeklyNew');
+        const nombre = input.value.trim();
+        if (!nombre) return;
+
+        const idKey = nombre.replace(/\s+/g, '_').toLowerCase();
+        
+        window.historialSemanas[idKey] = {
+            nombre: nombre,
+            completado: false
+        };
+
+        localStorage.setItem('historial_semanas', JSON.stringify(window.historialSemanas));
+        input.value = '';
+        renderizarTareasSemanales();
+    };
+
+    window.eliminarActividadSemanal = function(actId) {
+        delete window.historialSemanas[actId];
+        localStorage.setItem('historial_semanas', JSON.stringify(window.historialSemanas));
+        renderizarTareasSemanales();
+    };
+
+    window.toggleCumplimientoSemana = function(key) {
+        if (window.historialSemanas[key]) {
+            window.historialSemanas[key].completado = !window.historialSemanas[key].completado;
+            localStorage.setItem('historial_semanas', JSON.stringify(window.historialSemanas));
+            renderizarTareasSemanales();
+        }
+    };
+
+    // ========== CALENDARIO ==========
+    window.abrirCalendario = function() {
+        document.getElementById('calModal').classList.add('active');
+        document.getElementById('calModalTitle').innerText = `${mesesNombre[mesActualIndex]} ${añoActual}`;
+        const gridDays = document.getElementById('calGridDays');
+        gridDays.innerHTML = '';
+        const totalDias = obtenerDiasDelMes(mesActualIndex);
+        const primerDiaSemana = new Date(añoActual, mesActualIndex, 1).getDay();
+
+        for (let i = 0; i < primerDiaSemana; i++) {
+            gridDays.appendChild(document.createElement('div'));
+        }
+
+        for (let d = 1; d <= totalDias; d++) {
+            const mapaDia = window.historialDias?.[`Dia_${d}`] || {};
+            const llavesDia = Object.keys(mapaDia);
+            let hechas = 0;
+            llavesDia.forEach(k => { if (mapaDia[k].completado === true) hechas++; });
+
+            let cell = document.createElement('div');
+            cell.className = 'cal-day-cell';
+            cell.innerText = d;
+            
+            let pct = llavesDia.length > 0 ? (hechas / llavesDia.length) * 100 : 0;
+            if (llavesDia.length > 0) {
+                if (pct === 100) cell.classList.add('perfect');
+                else if (pct > 0) cell.classList.add('partial');
+            }
+            
+            cell.onclick = () => {
+                document.getElementById('calTooltip').innerHTML = `<strong>Día ${d}:</strong> ${hechas}/${llavesDia.length} hechas (${pct.toFixed(0)}%)`;
+            };
+            gridDays.appendChild(cell);
+        }
+    };
+
+    window.cerrarModalesAfuera = function(e) { 
+        if (e.target.classList.contains('modal-overlay')) { 
+            document.getElementById('calModal').classList.remove('active'); 
+            document.getElementById('weeklyModal').classList.remove('active'); 
+        }
+    };
+</script>
+</body>
+</html>

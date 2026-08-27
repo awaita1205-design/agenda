@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "2e7a03fb-1930-41a0-96ff-dd0d3190bfa7"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.awaita.agenda",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}
