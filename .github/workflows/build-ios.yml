@@ -27,5 +27,5 @@ jobs:
 
       - name: Build iOS project via Xcode
         run: |
-          cd ios/App
+          cd ios
           xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release archive -archivePath build/App.xcarchive CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
