@@ -25,14 +25,7 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync ios
 
-      - name: Ver estructura de carpetas (Debug)
-        run: |
-          echo "=== Contenido de la raiz ==="
-          ls -la
-          echo "=== Contenido de la carpeta ios ==="
-          ls -la ios || echo "La carpeta ios no existe"
-
       - name: Build iOS project via Xcode
         run: |
-          cd ios
+          cd ios/App
           xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release archive -archivePath build/App.xcarchive CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
